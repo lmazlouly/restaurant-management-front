@@ -5,7 +5,7 @@ import Home from '../views/Home.vue'
 import middlewarePipeline from './middlewarePipeline'
 /** Middlewares */
 import guest from './middlewares/guest'
-// import auth from './middlewares/auth'
+import auth from './middlewares/auth'
 /** Store */
 import store from '../store'
 Vue.use(VueRouter)
@@ -18,6 +18,38 @@ const routes = [
       middleware: [ guest ]
     },
     component: Home
+  },
+  {
+    path: '/users',
+    name: 'User',
+    meta: {
+      middleware: [ auth ]
+    },
+    component: () => import(/* webpackChunkName: "User" */ '../views/User.vue')
+  },
+  {
+    path: '/roles',
+    name: 'Role',
+    meta: {
+      middleware: [ auth ]
+    },
+    component: () => import(/* webpackChunkName: "Role" */ '../views/Role.vue')
+  },
+  {
+    path: '/products',
+    name: 'Product',
+    meta: {
+      middleware: [ auth ]
+    },
+    component: () => import(/* webpackChunkName: "Product" */ '../views/Product.vue')
+  },
+  {
+    path: '/orders',
+    name: 'Order',
+    meta: {
+      middleware: [ auth ]
+    },
+    component: () => import(/* webpackChunkName: "Order" */ '../views/Order.vue')
   },
 ]
 

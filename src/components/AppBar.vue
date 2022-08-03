@@ -2,9 +2,14 @@
   <v-card>
     <v-navigation-drawer v-model="sidebar" app>
       <v-list>
-        <!-- Dashboard Items -->
+        <!-- Admin Items -->
+        <template v-if="hasPerm('admin')">
+          <v-divider></v-divider>
+          <p class="my-3 text-center text-uppercase primary--text font-weight-black" color="primary"> Admin </p>
+          <v-divider></v-divider>
+        </template>
         <v-list-item
-          v-for="item in dashboardItems"
+          v-for="item in adminItems"
           v-show="!item.permission || (item.permission && hasPerm(item.permission))"
           :key="item.title"
           :to="item.path"
@@ -14,12 +19,57 @@
           </v-list-item-action>
           <v-list-item-content>{{ item.title }}</v-list-item-content>
         </v-list-item>
-        <!-- Product Management Items -->
-        <template v-if="hasPerm('product-read')">
+        <!-- Servant Items -->
+        <template v-if="hasPerm('servant')">
           <v-divider></v-divider>
-          <p class="my-3 text-center text-uppercase primary--text font-weight-black" color="primary"> Gestion de produits </p>
+          <p class="my-3 text-center text-uppercase primary--text font-weight-black" color="primary"> Serveur </p>
           <v-divider></v-divider>
         </template>
+        <v-list-item
+          v-for="item in servantItems"
+          v-show="!item.permission || (item.permission && hasPerm(item.permission))"
+          :key="item.title"
+          :to="item.path"
+        >
+          <v-list-item-action>
+            <v-icon>{{ item.icon }}</v-icon>
+          </v-list-item-action>
+          <v-list-item-content>{{ item.title }}</v-list-item-content>
+        </v-list-item>
+        <!-- Chef Items -->
+        <template v-if="hasPerm('chef')">
+          <v-divider></v-divider>
+          <p class="my-3 text-center text-uppercase primary--text font-weight-black" color="primary"> Chef </p>
+          <v-divider></v-divider>
+        </template>
+        <v-list-item
+          v-for="item in chefItems"
+          v-show="!item.permission || (item.permission && hasPerm(item.permission))"
+          :key="'chefItem'+ item.title"
+          :to="item.path"
+        >
+          <v-list-item-action>
+            <v-icon>{{ item.icon }}</v-icon>
+          </v-list-item-action>
+          <v-list-item-content>{{ item.title }}</v-list-item-content>
+        </v-list-item>
+        <!-- Cashier Items -->
+        <template v-if="hasPerm('cashier')">
+          <v-divider></v-divider>
+          <p class="my-3 text-center text-uppercase primary--text font-weight-black" color="primary"> Caissier </p>
+          <v-divider></v-divider>
+        </template>
+        <v-list-item
+          v-for="item in cashierItems"
+          v-show="!item.permission || (item.permission && hasPerm(item.permission))"
+          :key="'cashierItem'+ item.title"
+          :to="item.path"
+        >
+          <v-list-item-action>
+            <v-icon>{{ item.icon }}</v-icon>
+          </v-list-item-action>
+          <v-list-item-content>{{ item.title }}</v-list-item-content>
+        </v-list-item>
       </v-list>
     </v-navigation-drawer>
     <v-app-bar app color="#7957d5">
@@ -43,6 +93,16 @@
           <v-icon left dark>{{ item.icon }}</v-icon>
           {{ item.title }}
         </v-btn>
+        <!--  Log-out button -->
+        <v-btn
+          v-if="$store.getters.loggedIn"
+          class="white--text"
+          text
+          @click="logout"
+        >
+          <v-icon left dark>mdi-logout</v-icon>
+          Se déconnecter
+        </v-btn>
       </v-toolbar-items>
     </v-app-bar>
   </v-card>
@@ -52,6 +112,23 @@
 export default {
   name: 'AppBar',
   methods: {
+    logout() {
+      this.$swal({
+        title: 'Confirmer la déconnexion',
+        text: "Assurez-vous d'avoir enregistré toutes les données, puis cliquez sur confirmer!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Confirmer',
+        cancelButtonText: 'Annuler'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          this.$store.commit('changeAuthToken', null);
+          window.location = '/login'
+        }
+      })
+    },
     hasPerm(permissionName) {
       return this.$store.state.permissions?.find(perm => perm.name == permissionName) ? true:false
     },
@@ -67,73 +144,49 @@ export default {
         ]
       } else {
         return [
-          { title: 'Se déconnecter', path: '/logout', icon: 'mdi-logout' },
+          // { title: 'Se déconnecter', path: '/logout', icon: 'mdi-logout' },
         ]
       }
     },
-    dashboardItems() {
-      if ( !this.$store.getters.loggedIn )
-        return []
-      else
+    adminItems() {
+      if ( this.authenticated ) {
         return [
-          { title: 'Dashboard', path: '/dashboard', icon: 'mdi-home' },
-        ]
-    },
-    userRoleItems() {
-      if ( !this.$store.getters.loggedIn ) {
-        return [
-        ]
-      } else {
-        return [
-          { title: 'Rôles', path: '/role', icon: 'mdi-wrench', permission: 'role-read' },
-          { title: 'Utilisateurs', path: '/users', icon: 'mdi-account-group', permission: 'user-read' },
-        ]
+          { title: 'Rôles', path: '/roles', icon: 'fas fa-user-cog', permission: 'admin' },
+          { title: 'Utilisateurs', path: '/users', icon: 'fas fa-users', permission: 'admin' },
+          { title: 'Produits', path: '/products', icon: 'fas fa-box', permission: 'admin' }
+        ];
       }
+      return [];
     },
-    sideBarItems() {
-      // let isLogged = await 
-      if ( !this.$store.getters.loggedIn ) {
+    servantItems() {
+      if ( this.authenticated ) {
         return [
-          { title: 'Accueil', path: '/', icon: 'mdi-home' },
-        //   { title: 'Connexion', path: '/login', icon: 'mdi-lock' },
-        ]
-      } else {
-        // Sidebar LoggedIn Users
-        return [
-          { title: 'Se déconnecter', path: '/logout', icon: 'mdi-logout' },
-        ]
+          { title: 'Commandes', path: '/orders', icon: 'fas fa-utensils', permission: 'servant' },
+          // { title: 'Utilisateurs', path: '/users', icon: 'fas fa-users', permission: 'servant' },
+          // { title: 'Produits', path: '/products', icon: 'fas fa-box', permission: 'servant' }
+        ];
       }
+      return [];
     },
-    productItems() {
-      if ( this.$store.getters.loggedIn ) {
+    chefItems() {
+      if ( this.authenticated ) {
         return [
-          { title: 'Marques', path: '/brands', icon: 'fa-trademark', permission: 'brand-read' },
-          { title: 'Familles', path: '/categories', icon: 'mdi-shape', permission: 'category-read' },
-          { title: 'Produits', path: '/products', icon: 'mdi-inbox-multiple', permission: 'product-read' },
-        ]
+          { title: 'Commandes', path: '/orders', icon: 'fas fa-utensils', permission: 'chef' },
+          // { title: 'Utilisateurs', path: '/users', icon: 'fas fa-users', permission: 'servant' },
+          // { title: 'Produits', path: '/products', icon: 'fas fa-box', permission: 'servant' }
+        ];
       }
-      return []
+      return [];
     },
-    stockItems() {
-      if ( this.$store.getters.loggedIn ) {
+    cashierItems() {
+      if ( this.authenticated ) {
         return [
-          { title: 'Stock', path: '/inventory', icon: 'fa-warehouse', permission: 'inventory-read' },
-        ]
-      } else {
-        return []
+          { title: 'Commandes', path: '/orders', icon: 'fas fa-utensils', permission: 'cashier' },
+          // { title: 'Utilisateurs', path: '/users', icon: 'fas fa-users', permission: 'servant' },
+          // { title: 'Produits', path: '/products', icon: 'fas fa-box', permission: 'servant' }
+        ];
       }
-    },
-    salesPurchasesItems() {
-      if ( this.$store.getters.loggedIn ) {
-        return [
-          { title: 'Clients', path: '/clients', icon: 'fa-handshake', permission: 'concern-read' },
-          { title: 'Fournisseurs', path: '/providers', icon: 'fa-handshake', permission: 'concern-read' },
-          { title: 'Achats', path: '/purchases', icon: 'fa-cart-shopping', permission: 'purchase-read' },
-          { title: 'Ventes', path: '/sales', icon: 'fa-hand-holding-dollar', permission: 'sale-read' },
-        ]
-      } else {
-        return []
-      }
+      return [];
     }
   },
   data() {

@@ -21,6 +21,25 @@ Vue.filter('formatDate', function(value) {
   }
 })
 
+Vue.filter('formatDateTime', (val) => {
+  if (val) {
+    return moment(String(val)).format('DD/MM/YYYY - HH:mm')
+  }
+})
+
+Vue.filter('formatStatus', (val) => {
+  switch (val) {
+    case 'NEW':
+      return '<span class="primary--text">Dans la file d\'attente</span>'
+    case 'READY':
+      return '<span class="success--text">Prêt</span>'
+    case 'SERVED':
+      return '<span class="success--text">SERVIE</span>'
+    default:
+      return '<span>'+ val +'</span>'
+  }
+})
+
 // import dotEnv from 'dotenv'
 // dotEnv.config();
 new Vue({
